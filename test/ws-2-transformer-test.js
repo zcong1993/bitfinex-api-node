@@ -6,25 +6,25 @@ const PORT = 1337
 const assert = require('assert')
 
 const WebSocket = require('ws')
-const BFX = require('../index')
+const BFX = require('../index.js')
 
 const stubResponseOrderbookP0 = require('./fixtures/response-ws2-server-order-book-P0.json')
 
 describe('ws-2-transforms', () => {
   it('websocket transforming with snapshots: orderbooks', (done) => {
-    const bws = new BFX('dummy', 'dummy', { version: 2, transform: true, autoOpen: false }).ws
-
-    bws.websocketURI = `ws://localhost:${PORT}`
-    bws.open()
-
     const wss = new WebSocket.Server({
       perMessageDeflate: false,
       port: PORT
     })
 
+    const bws = new BFX('dummy', 'dummy', { version: 2, transform: true, autoOpen: false }).ws
+
+    bws.websocketURI = `ws://localhost:${PORT}`
+    bws.open()
+
     wss.on('connection', function connection (ws) {
+      ws.send('{"event":"info","version":2}')
       ws.on('message', function incoming (msg) {
-        ws.send('{"event":"info","version":2}')
         ws.send('{"event":"subscribed","channel":"book","chanId":300,"symbol":"tBTCUSD","prec":"P0","freq":"F0","len":"25","pair":"BTCUSD"}')
         ws.send(JSON.stringify(stubResponseOrderbookP0))
 
